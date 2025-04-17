@@ -2,33 +2,81 @@ import { Injectable } from '@nestjs/common';
 import { CreateProductInput } from './dto/inputs/create-product.input';
 import { UpdateProductInput } from './dto/inputs/update-product.input';
 import { firstValueFrom, Observable } from 'rxjs';
-import { Axios, AxiosResponse } from 'axios';
+import axios, { Axios, AxiosResponse } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { Product } from './entities/product.entity';
+import { GetProducts } from './entities/get-products.entity';
+import { ProductServiceInterface } from './interfaces/product.service.interface';
+
+const API_URL = 'http://localhost:3000/api/v1/product';
+
 
 @Injectable()
-export class ProductService {
-  constructor(private readonly httpService: HttpService) {}
-  create(createProductInput: CreateProductInput) {
-    return 'This action adds a new product';
+export class ProductService implements ProductServiceInterface {
+  constructor() { }
+
+
+
+  async create(createProductInput: CreateProductInput) {
+
+    try {
+      const { data } = await axios.post<Product>(`${API_URL}/create`, createProductInput);
+      return data;
+    } catch (error) {
+      this.handleApiErrors(error);
+    }
+
   }
 
-  async findAll():  Promise<Observable<AxiosResponse<Product[]>>> {
-    const response$ =  this.httpService.get('http://localhost:3000/api/v1/product/getAll');
-    const response = await firstValueFrom(response$);
-    return response.data;
-    
+  async findAll(limit?: number, offset?: number) {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    try {
+      const { data } = await axios.get<GetProducts>(`${API_URL}/getAll?${params.toString()}`);
+      return data;
+
+    } catch (error) {
+      this.handleApiErrors(error);
+    }
+
+
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    const { data } = await axios.get<Product[]>(`${API_URL}/getById/${id}`);
+    return data;
   }
 
-  update(id: number, updateProductInput: UpdateProductInput) {
-    return `This action updates a #${id} product`;
+  async update(updateProductInput: UpdateProductInput) {
+    try {
+      const { data } = await axios.post<Product>(`${API_URL}/update`, updateProductInput);
+      return data;
+    } catch (error) {
+      this.handleApiErrors(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    try {
+      const { data } = await axios.post<string>(`${API_URL}/remove`, { id });
+      return data;
+    } catch (error) {
+      this.handleApiErrors(error);
+    }
+
+  }
+
+  private handleApiErrors(error: any) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error message:', error.message);
+
+      if (error.response) {
+        console.error('API Error Response:', error.response.data);
+        throw new Error(error.response.data?.message || 'Unexpected API error');
+      }
+    }
+
+    throw new Error(error.response.data.message);
   }
 }

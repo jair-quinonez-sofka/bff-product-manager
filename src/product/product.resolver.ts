@@ -3,6 +3,9 @@ import { ProductService } from './product.service';
 import { Product } from './entities/product.entity';
 import { CreateProductInput } from './dto/inputs/create-product.input';
 import { UpdateProductInput } from './dto/inputs/update-product.input';
+import { GetProducts } from './entities/get-products.entity';
+import { IsUUID } from 'class-validator';
+import { RemoveProductInput } from './dto/inputs/remove-product.input';
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -13,23 +16,26 @@ export class ProductResolver {
     return this.productService.create(createProductInput);
   }
 
-  @Query(() => [Product], { name: 'getProducts' })
-  async findAll() {
-    return this.productService.findAll();
+  @Query(() => GetProducts, { name: 'getProducts' })
+  findAll(
+    @Args('limit', { type: () => Int, nullable: true }) limit: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset: number,
+  ) {
+    return this.productService.findAll(limit, offset);
   }
 
-  @Query(() => String, { name: 'getProduct' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  @Query(() => Product, { name: 'getProduct' })
+  findOne(@Args('id', { type: () => String }) id: string) {
     return this.productService.findOne(id);
   }
 
-  @Mutation(() => String)
+  @Mutation(() => Product)
   updateProduct(@Args('updateProductInput') updateProductInput: UpdateProductInput) {
-    return this.productService.update(updateProductInput.id, updateProductInput);
+    return this.productService.update(updateProductInput);
   }
 
-  @Mutation(() => Product)
-  removeProduct(@Args('id', { type: () => Int }) id: number) {
-    return this.productService.remove(id);
+  @Mutation(() => String)
+  removeProduct(@Args('removeProductInput', { type: () => RemoveProductInput }) removeProductInput: RemoveProductInput) {
+    return this.productService.remove(removeProductInput.id);
   }
 }

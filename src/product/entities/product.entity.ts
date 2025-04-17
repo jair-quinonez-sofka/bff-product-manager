@@ -17,4 +17,5 @@ export class Product {
 
   @Field(() =>  Int)
   stock: number;
+
 }

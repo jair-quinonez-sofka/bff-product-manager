@@ -11,24 +11,37 @@ type Product {
   stock: Int!
 }
 
+type GetProducts {
+  size: Int!
+  products: [Product!]!
+}
+
 type Query {
-  getProducts: [Product!]!
-  getProduct(id: Int!): String!
+  getProducts(limit: Int, offset: Int): GetProducts!
+  getProduct(id: String!): Product!
 }
 
 type Mutation {
   createProduct(createProductInput: CreateProductInput!): Product!
-  updateProduct(updateProductInput: UpdateProductInput!): String!
-  removeProduct(id: Int!): Product!
+  updateProduct(updateProductInput: UpdateProductInput!): Product!
+  removeProduct(removeProductInput: RemoveProductInput!): String!
 }
 
 input CreateProductInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  name: String!
+  description: String!
+  price: Float!
+  stock: Int!
 }
 
 input UpdateProductInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  name: String
+  description: String
+  price: Float
+  stock: Int
+  id: String!
+}
+
+input RemoveProductInput {
+  id: String!
 }
